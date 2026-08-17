@@ -328,11 +328,12 @@ export default function Organisations() {
                         onClick={() => toggleStatus(org.id, org.is_active)}
                         className="text-xs px-2 py-1 rounded-full font-semibold transition-all"
                         style={{
-                          backgroundColor: org.is_active ? '#dcfce7' : '#fee2e2',
-                          color: org.is_active ? '#15803d' : '#dc2626'
+                          backgroundColor: org.is_active ? '#dcfce7' : '#fef3c7',
+                          color: org.is_active ? '#15803d' : '#b45309',
+                          border: org.is_active ? '1px solid #bbf7d0' : '1px solid #fde68a'
                         }}
                       >
-                        {org.is_active ? 'Active' : 'Inactive'}
+                        {org.is_active ? 'Approved' : 'Pending Approval'}
                       </button>
                     </td>
                     <td className="px-4 py-3 text-center">
