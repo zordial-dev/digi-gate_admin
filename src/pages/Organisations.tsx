@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Eye, X, Search, ChevronLeft, ChevronRight, Building2, Upload } from 'lucide-react';
+import { Plus, Edit2, Trash2, Eye, X, Search, ChevronLeft, ChevronRight, Building2, Upload, QrCode } from 'lucide-react';
 import { organisationApi } from '@/api/services';
 import type { Organisation } from '@/types';
 import { useNavigate } from 'react-router-dom';
+import OrgQRModal from '../components/UI/OrgQRModal';
+import MessageVariableBuilder from '../components/UI/MessageVariableBuilder';
 
 export default function Organisations() {
   const navigate = useNavigate();
@@ -13,6 +15,7 @@ export default function Organisations() {
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const [showModal, setShowModal] = useState(false);
+  const [qrModalOrg, setQrModalOrg] = useState<Organisation | null>(null);
   const [editingOrg, setEditingOrg] = useState<Organisation | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -216,27 +219,26 @@ export default function Organisations() {
   };
 
   if (loading && organisations.length === 0) {
-    return <div className="text-center py-8" style={{ color: '#64748b' }}>Loading organisations...</div>;
+    return (
+      <div className="min-h-[300px] flex items-center justify-center p-8">
+        <div className="flex flex-col items-center gap-2 text-[#035352]">
+          <div className="w-8 h-8 border-3 border-[#035352] border-t-transparent rounded-full animate-spin" />
+          <p className="text-xs font-bold">Loading Organisations...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold" style={{ color: '#06216B' }}>Organisations</h1>
+    <div className="space-y-6 animate-in fade-in duration-300">
+      <div className="flex items-center justify-between flex-wrap gap-4">
+        <div>
+          <h1 className="text-2xl font-black tracking-tight text-[#172525]">Tenant Organisations</h1>
+          <p className="text-xs text-slate-500 font-medium mt-1">Manage registered organisations, gate access status, and QR passes</p>
+        </div>
         <button
           onClick={openCreateModal}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-white transition-all"
-          style={{
-            background: 'linear-gradient(135deg, #153D9F 0%, #06216B 100%)',
-            boxShadow: '0 6px 18px rgba(2, 29, 91, 0.2)',
-            border: '1px solid #021767'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'linear-gradient(135deg, #06216B 0%, #021D5B 100%)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'linear-gradient(135deg, #153D9F 0%, #06216B 100%)';
-          }}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs text-white bg-[#035352] hover:bg-[#023e3d] shadow-md shadow-[#035352]/20 transition-all"
         >
           <Plus className="h-4 w-4" />
           Add Organisation
@@ -245,62 +247,40 @@ export default function Organisations() {
 
       {message && (
         <div 
-          className={`mb-4 p-3 rounded-lg border ${
+          className={`p-3.5 rounded-2xl border text-xs font-bold shadow-sm ${
             message.type === 'success' 
-              ? 'bg-green-50 text-green-700 border-green-200' 
-              : 'bg-red-50 text-red-700 border-red-200'
+              ? 'bg-emerald-50 text-emerald-800 border-emerald-200' 
+              : 'bg-rose-50 text-rose-800 border-rose-200'
           }`}
         >
           {message.text}
         </div>
       )}
 
-      <div className="flex items-center gap-4 mb-4">
+      <div className="flex items-center gap-4">
         <div className="relative flex-1">
           <input
             type="text"
             placeholder="Search organisations..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full px-4 py-2.5 border rounded-xl outline-none transition-all"
-            style={{
-              borderColor: '#021767',
-              color: '#3F5885',
-              fontWeight: 500,
-              fontSize: '0.95rem',
-              backgroundColor: '#ffffff'
-            }}
-            onFocus={(e) => {
-              e.target.style.borderColor = '#289CD8';
-              e.target.style.boxShadow = '0 0 0 3px rgba(40, 156, 216, 0.2)';
-            }}
-            onBlur={(e) => {
-              e.target.style.borderColor = '#021767';
-              e.target.style.boxShadow = 'none';
-            }}
+            className="w-full px-4 py-2.5 pl-10 bg-white border border-slate-300 rounded-xl outline-none text-xs font-bold text-slate-800 placeholder-slate-400 focus:border-[#035352] focus:ring-2 focus:ring-[#035352]/20 transition-all shadow-sm"
           />
-          <Search className="h-5 w-5 absolute right-3 top-1/2 -translate-y-1/2" style={{ color: '#94a3b8' }} />
+          <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
         </div>
       </div>
 
-      <div 
-        className="rounded-xl overflow-hidden"
-        style={{
-          backgroundColor: '#ffffff',
-          border: '1px solid #021767',
-          boxShadow: '0 4px 16px rgba(2, 29, 91, 0.08)'
-        }}
-      >
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-md shadow-slate-200/50 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-xs sm:text-sm text-left border-collapse">
             <thead>
-              <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #021767' }}>
-                <th className="text-left px-4 py-3 font-bold" style={{ color: '#3F5885' }}>Logo</th>
-                <th className="text-left px-4 py-3 font-bold" style={{ color: '#3F5885' }}>Name</th>
-                <th className="text-left px-4 py-3 font-bold" style={{ color: '#3F5885' }}>Code</th>
-                <th className="text-left px-4 py-3 font-bold" style={{ color: '#3F5885' }}>City</th>
-                <th className="text-left px-4 py-3 font-bold" style={{ color: '#3F5885' }}>Status</th>
-                <th className="text-center px-4 py-3 font-bold" style={{ color: '#3F5885' }}>Actions</th>
+              <tr className="bg-slate-50/80 border-b border-slate-200/80">
+                <th className="px-4 py-3.5 font-bold text-[#035352] uppercase tracking-wider text-[11px]">Logo</th>
+                <th className="px-4 py-3.5 font-bold text-[#035352] uppercase tracking-wider text-[11px]">Name</th>
+                <th className="px-4 py-3.5 font-bold text-[#035352] uppercase tracking-wider text-[11px]">Code</th>
+                <th className="px-4 py-3.5 font-bold text-[#035352] uppercase tracking-wider text-[11px]">City</th>
+                <th className="px-4 py-3.5 font-bold text-[#035352] uppercase tracking-wider text-[11px]">Status</th>
+                <th className="px-4 py-3.5 font-bold text-[#035352] uppercase tracking-wider text-[11px] text-center">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -338,6 +318,13 @@ export default function Organisations() {
                     </td>
                     <td className="px-4 py-3 text-center">
                       <div className="flex items-center justify-center gap-1">
+                        <button
+                          onClick={() => setQrModalOrg(org)}
+                          title="View & Print QR Code Pass"
+                          className="p-1.5 rounded-lg transition-all text-[#035352] hover:bg-[#035352]/10"
+                        >
+                          <QrCode className="h-4 w-4" />
+                        </button>
                         <button
                           onClick={() => navigate(`/organisations/${org.id}`)}
                           className="p-1.5 rounded-lg transition-all"
@@ -449,83 +436,58 @@ export default function Organisations() {
         )}
       </div>
 
-      {/* Create/Edit Modal with Zordial styling */}
+      {/* Create/Edit Modal with Theme styling */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div 
-            className="bg-white rounded-2xl shadow-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto"
-            style={{
-              border: '1px solid #021767',
-              boxShadow: '0 20px 60px rgba(2, 29, 91, 0.25)'
-            }}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold" style={{ color: '#06216B' }}>
-                {editingOrg ? 'Edit Organisation' : 'Add New Organisation'}
-              </h2>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full p-6 sm:p-8 max-h-[90vh] overflow-y-auto border border-slate-200 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-[#035352]/10 text-[#035352] flex items-center justify-center font-bold">
+                  <Building2 className="w-4 h-4" />
+                </div>
+                <h2 className="text-lg font-bold text-[#172525]">
+                  {editingOrg ? 'Edit Organisation Details' : 'Add New Organisation'}
+                </h2>
+              </div>
               <button 
                 onClick={closeModal} 
-                className="p-1.5 rounded-lg transition-all"
-                style={{ color: '#94a3b8' }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.color = '#3F5885';
-                  e.currentTarget.style.backgroundColor = 'rgba(6, 33, 107, 0.06)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.color = '#94a3b8';
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                }}
+                className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
             {loading && editingOrg ? (
-              <div className="text-center py-8" style={{ color: '#64748b' }}>Loading organisation details...</div>
+              <div className="min-h-[200px] flex items-center justify-center p-8">
+                <div className="flex flex-col items-center gap-2 text-[#035352]">
+                  <div className="w-8 h-8 border-3 border-[#035352] border-t-transparent rounded-full animate-spin" />
+                  <p className="text-xs font-bold">Loading organisation details...</p>
+                </div>
+              </div>
             ) : (
               <>
                 {message && (
-                  <div 
-                    className={`mb-4 p-3 rounded-lg border ${
-                      message.type === 'success' 
-                        ? 'bg-green-50 text-green-700 border-green-200' 
-                        : 'bg-red-50 text-red-700 border-red-200'
-                    }`}
-                  >
+                  <div className={`mb-4 p-3.5 rounded-2xl border text-xs font-bold shadow-sm ${
+                    message.type === 'success' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-rose-50 text-rose-800 border-rose-200'
+                  }`}>
                     {message.text}
                   </div>
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
-                    <label className="block text-sm font-semibold mb-1.5" style={{ color: '#3F5885' }}>Logo</label>
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Organisation Logo</label>
                     <div className="flex items-center gap-4">
-                      <div 
-                        className="w-16 h-16 rounded-lg overflow-hidden flex items-center justify-center"
-                        style={{ backgroundColor: '#f1f5f9', border: '1px solid #021767' }}
-                      >
+                      <div className="w-16 h-16 rounded-2xl overflow-hidden flex items-center justify-center bg-slate-50 border-2 border-[#035352]/30 shadow-inner">
                         {logoPreview ? (
-                          <img src={logoPreview} alt="Logo preview" className="w-full h-full object-cover" />
+                          <img src={logoPreview} alt="Logo preview" className="w-full h-full object-cover p-1" />
                         ) : (
-                          <Building2 className="h-8 w-8" style={{ color: '#94a3b8' }} />
+                          <Building2 className="h-8 w-8 text-slate-300" />
                         )}
                       </div>
-                      <label 
-                        className="cursor-pointer px-4 py-2 rounded-xl font-semibold transition-all"
-                        style={{
-                          border: '1px solid #021767',
-                          color: '#3F5885',
-                          backgroundColor: '#ffffff'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = 'rgba(6, 33, 107, 0.06)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = '#ffffff';
-                        }}
-                      >
-                        <Upload className="h-4 w-4 inline mr-2" />
-                        Upload Logo
+                      <label className="cursor-pointer px-4 py-2.5 rounded-xl font-bold text-xs bg-[#035352]/10 text-[#035352] border border-[#035352]/20 hover:bg-[#035352]/20 transition-all inline-flex items-center gap-2">
+                        <Upload className="h-4 w-4" />
+                        <span>Upload Logo</span>
                         <input type="file" accept="image/*" onChange={handleLogoChange} className="hidden" />
                       </label>
                     </div>
@@ -533,279 +495,114 @@ export default function Organisations() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-semibold mb-1.5" style={{ color: '#3F5885' }}>Organisation Name *</label>
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Organisation Name *</label>
                       <input
                         type="text"
                         name="name"
                         value={formData.name}
                         onChange={handleChange}
                         required
-                        className="w-full px-4 py-2.5 border rounded-xl outline-none transition-all"
-                        style={{
-                          borderColor: '#021767',
-                          color: '#3F5885',
-                          fontWeight: 500,
-                          fontSize: '0.95rem',
-                          backgroundColor: '#ffffff'
-                        }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = '#289CD8';
-                          e.target.style.boxShadow = '0 0 0 3px rgba(40, 156, 216, 0.2)';
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = '#021767';
-                          e.target.style.boxShadow = 'none';
-                        }}
+                        className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl outline-none text-xs font-bold text-slate-800 focus:border-[#035352] focus:ring-2 focus:ring-[#035352]/20 transition-all shadow-sm"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold mb-1.5" style={{ color: '#3F5885' }}>Code *</label>
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Code *</label>
                       <input
                         type="text"
                         name="code"
                         value={formData.code}
                         onChange={handleChange}
                         required
-                        className="w-full px-4 py-2.5 border rounded-xl outline-none transition-all"
-                        style={{
-                          borderColor: '#021767',
-                          color: '#3F5885',
-                          fontWeight: 500,
-                          fontSize: '0.95rem',
-                          backgroundColor: '#ffffff'
-                        }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = '#289CD8';
-                          e.target.style.boxShadow = '0 0 0 3px rgba(40, 156, 216, 0.2)';
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = '#021767';
-                          e.target.style.boxShadow = 'none';
-                        }}
+                        className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl outline-none text-xs font-bold text-slate-800 focus:border-[#035352] focus:ring-2 focus:ring-[#035352]/20 transition-all shadow-sm"
                       />
                     </div>
                     <div className="md:col-span-2">
-                      <label className="block text-sm font-semibold mb-1.5" style={{ color: '#3F5885' }}>Address</label>
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Address</label>
                       <input
                         type="text"
                         name="address"
                         value={formData.address}
                         onChange={handleChange}
-                        className="w-full px-4 py-2.5 border rounded-xl outline-none transition-all"
-                        style={{
-                          borderColor: '#021767',
-                          color: '#3F5885',
-                          fontWeight: 500,
-                          fontSize: '0.95rem',
-                          backgroundColor: '#ffffff'
-                        }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = '#289CD8';
-                          e.target.style.boxShadow = '0 0 0 3px rgba(40, 156, 216, 0.2)';
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = '#021767';
-                          e.target.style.boxShadow = 'none';
-                        }}
+                        className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl outline-none text-xs font-bold text-slate-800 focus:border-[#035352] focus:ring-2 focus:ring-[#035352]/20 transition-all shadow-sm"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold mb-1.5" style={{ color: '#3F5885' }}>City</label>
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">City</label>
                       <input
                         type="text"
                         name="city"
                         value={formData.city}
                         onChange={handleChange}
-                        className="w-full px-4 py-2.5 border rounded-xl outline-none transition-all"
-                        style={{
-                          borderColor: '#021767',
-                          color: '#3F5885',
-                          fontWeight: 500,
-                          fontSize: '0.95rem',
-                          backgroundColor: '#ffffff'
-                        }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = '#289CD8';
-                          e.target.style.boxShadow = '0 0 0 3px rgba(40, 156, 216, 0.2)';
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = '#021767';
-                          e.target.style.boxShadow = 'none';
-                        }}
+                        className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl outline-none text-xs font-bold text-slate-800 focus:border-[#035352] focus:ring-2 focus:ring-[#035352]/20 transition-all shadow-sm"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold mb-1.5" style={{ color: '#3F5885' }}>State</label>
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">State</label>
                       <input
                         type="text"
                         name="state"
                         value={formData.state}
                         onChange={handleChange}
-                        className="w-full px-4 py-2.5 border rounded-xl outline-none transition-all"
-                        style={{
-                          borderColor: '#021767',
-                          color: '#3F5885',
-                          fontWeight: 500,
-                          fontSize: '0.95rem',
-                          backgroundColor: '#ffffff'
-                        }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = '#289CD8';
-                          e.target.style.boxShadow = '0 0 0 3px rgba(40, 156, 216, 0.2)';
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = '#021767';
-                          e.target.style.boxShadow = 'none';
-                        }}
+                        className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl outline-none text-xs font-bold text-slate-800 focus:border-[#035352] focus:ring-2 focus:ring-[#035352]/20 transition-all shadow-sm"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold mb-1.5" style={{ color: '#3F5885' }}>Country</label>
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Country</label>
                       <input
                         type="text"
                         name="country"
                         value={formData.country}
                         onChange={handleChange}
-                        className="w-full px-4 py-2.5 border rounded-xl outline-none transition-all"
-                        style={{
-                          borderColor: '#021767',
-                          color: '#3F5885',
-                          fontWeight: 500,
-                          fontSize: '0.95rem',
-                          backgroundColor: '#ffffff'
-                        }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = '#289CD8';
-                          e.target.style.boxShadow = '0 0 0 3px rgba(40, 156, 216, 0.2)';
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = '#021767';
-                          e.target.style.boxShadow = 'none';
-                        }}
+                        className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl outline-none text-xs font-bold text-slate-800 focus:border-[#035352] focus:ring-2 focus:ring-[#035352]/20 transition-all shadow-sm"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold mb-1.5" style={{ color: '#3F5885' }}>Pincode</label>
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Pincode</label>
                       <input
                         type="text"
                         name="pincode"
                         value={formData.pincode}
                         onChange={handleChange}
-                        className="w-full px-4 py-2.5 border rounded-xl outline-none transition-all"
-                        style={{
-                          borderColor: '#021767',
-                          color: '#3F5885',
-                          fontWeight: 500,
-                          fontSize: '0.95rem',
-                          backgroundColor: '#ffffff'
-                        }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = '#289CD8';
-                          e.target.style.boxShadow = '0 0 0 3px rgba(40, 156, 216, 0.2)';
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = '#021767';
-                          e.target.style.boxShadow = 'none';
-                        }}
+                        className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl outline-none text-xs font-bold text-slate-800 focus:border-[#035352] focus:ring-2 focus:ring-[#035352]/20 transition-all shadow-sm"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold mb-1.5" style={{ color: '#3F5885' }}>Phone</label>
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Phone</label>
                       <input
                         type="text"
                         name="phone"
                         value={formData.phone}
                         onChange={handleChange}
-                        className="w-full px-4 py-2.5 border rounded-xl outline-none transition-all"
-                        style={{
-                          borderColor: '#021767',
-                          color: '#3F5885',
-                          fontWeight: 500,
-                          fontSize: '0.95rem',
-                          backgroundColor: '#ffffff'
-                        }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = '#289CD8';
-                          e.target.style.boxShadow = '0 0 0 3px rgba(40, 156, 216, 0.2)';
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = '#021767';
-                          e.target.style.boxShadow = 'none';
-                        }}
+                        className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl outline-none text-xs font-bold text-slate-800 focus:border-[#035352] focus:ring-2 focus:ring-[#035352]/20 transition-all shadow-sm"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold mb-1.5" style={{ color: '#3F5885' }}>Email</label>
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Email</label>
                       <input
                         type="email"
                         name="email"
                         value={formData.email}
                         onChange={handleChange}
-                        className="w-full px-4 py-2.5 border rounded-xl outline-none transition-all"
-                        style={{
-                          borderColor: '#021767',
-                          color: '#3F5885',
-                          fontWeight: 500,
-                          fontSize: '0.95rem',
-                          backgroundColor: '#ffffff'
-                        }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = '#289CD8';
-                          e.target.style.boxShadow = '0 0 0 3px rgba(40, 156, 216, 0.2)';
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = '#021767';
-                          e.target.style.boxShadow = 'none';
-                        }}
+                        className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl outline-none text-xs font-bold text-slate-800 focus:border-[#035352] focus:ring-2 focus:ring-[#035352]/20 transition-all shadow-sm"
                       />
                     </div>
                     <div className="md:col-span-2">
-                      <label className="block text-sm font-semibold mb-1.5" style={{ color: '#3F5885' }}>Website</label>
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Website</label>
                       <input
                         type="url"
                         name="website"
                         value={formData.website}
                         onChange={handleChange}
-                        className="w-full px-4 py-2.5 border rounded-xl outline-none transition-all"
-                        style={{
-                          borderColor: '#021767',
-                          color: '#3F5885',
-                          fontWeight: 500,
-                          fontSize: '0.95rem',
-                          backgroundColor: '#ffffff'
-                        }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = '#289CD8';
-                          e.target.style.boxShadow = '0 0 0 3px rgba(40, 156, 216, 0.2)';
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = '#021767';
-                          e.target.style.boxShadow = 'none';
-                        }}
+                        className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl outline-none text-xs font-bold text-slate-800 focus:border-[#035352] focus:ring-2 focus:ring-[#035352]/20 transition-all shadow-sm"
                       />
                     </div>
                     <div className="md:col-span-2">
-                      <label className="block text-sm font-semibold mb-1.5" style={{ color: '#3F5885' }}>Timezone</label>
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Timezone</label>
                       <select
                         name="timezone"
                         value={formData.timezone}
                         onChange={handleChange}
-                        className="w-full px-4 py-2.5 border rounded-xl outline-none transition-all"
-                        style={{
-                          borderColor: '#021767',
-                          color: '#3F5885',
-                          fontWeight: 500,
-                          fontSize: '0.95rem',
-                          backgroundColor: '#ffffff'
-                        }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = '#289CD8';
-                          e.target.style.boxShadow = '0 0 0 3px rgba(40, 156, 216, 0.2)';
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = '#021767';
-                          e.target.style.boxShadow = 'none';
-                        }}
+                        className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl outline-none text-xs font-bold text-slate-800 focus:border-[#035352] focus:ring-2 focus:ring-[#035352]/20 transition-all shadow-sm"
                       >
                         <option value="">Select timezone</option>
                         <option value="UTC">UTC</option>
@@ -824,105 +621,41 @@ export default function Organisations() {
                     </div>
                   </div>
 
-                  {/* Host Message Fields */}
-                  <div className="border-t pt-4 mt-2" style={{ borderColor: '#e2e8f0' }}>
-                    <h3 className="text-sm font-semibold mb-3" style={{ color: '#3F5885' }}>Host Messages</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-semibold mb-1.5" style={{ color: '#3F5885' }}>Available Message</label>
-                        <textarea
-                          name="host_available_message"
-                          value={formData.host_available_message}
-                          onChange={handleChange}
-                          rows={3}
-                          placeholder="Message to show when host is available"
-                          className="w-full px-4 py-2.5 border rounded-xl outline-none transition-all resize-y"
-                          style={{
-                            borderColor: '#021767',
-                            color: '#3F5885',
-                            fontWeight: 500,
-                            fontSize: '0.95rem',
-                            backgroundColor: '#ffffff'
-                          }}
-                          onFocus={(e) => {
-                            e.target.style.borderColor = '#289CD8';
-                            e.target.style.boxShadow = '0 0 0 3px rgba(40, 156, 216, 0.2)';
-                          }}
-                          onBlur={(e) => {
-                            e.target.style.borderColor = '#021767';
-                            e.target.style.boxShadow = 'none';
-                          }}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold mb-1.5" style={{ color: '#3F5885' }}>Unavailable Message</label>
-                        <textarea
-                          name="host_unavailable_message"
-                          value={formData.host_unavailable_message}
-                          onChange={handleChange}
-                          rows={3}
-                          placeholder="Message to show when host is unavailable"
-                          className="w-full px-4 py-2.5 border rounded-xl outline-none transition-all resize-y"
-                          style={{
-                            borderColor: '#021767',
-                            color: '#3F5885',
-                            fontWeight: 500,
-                            fontSize: '0.95rem',
-                            backgroundColor: '#ffffff'
-                          }}
-                          onFocus={(e) => {
-                            e.target.style.borderColor = '#289CD8';
-                            e.target.style.boxShadow = '0 0 0 3px rgba(40, 156, 216, 0.2)';
-                          }}
-                          onBlur={(e) => {
-                            e.target.style.borderColor = '#021767';
-                            e.target.style.boxShadow = 'none';
-                          }}
-                        />
-                      </div>
-                    </div>
+                  {/* Interactive Custom Message Variable Builder */}
+                  <div className="border-t border-slate-100 pt-6 mt-4 space-y-4">
+                    <MessageVariableBuilder
+                      label="Host Available Confirmation Message"
+                      name="host_available_message"
+                      value={formData.host_available_message}
+                      onChange={handleChange}
+                      onValueChange={(val) => setFormData((prev) => ({ ...prev, host_available_message: val }))}
+                      defaultMessage="Thank you for visiting! :visitor_name, :host_name will be with you shortly."
+                    />
+
+                    <MessageVariableBuilder
+                      label="Host Unavailable Notification Message"
+                      name="host_unavailable_message"
+                      value={formData.host_unavailable_message}
+                      onChange={handleChange}
+                      onValueChange={(val) => setFormData((prev) => ({ ...prev, host_unavailable_message: val }))}
+                      defaultMessage="Thank you for your interest, :visitor_name. :host_name is currently unavailable."
+                    />
                   </div>
 
-                  <div className="flex gap-3 pt-4" style={{ borderTop: '1px solid #e2e8f0' }}>
+                  <div className="flex gap-3 pt-6 border-t border-slate-100">
                     <button
                       type="button"
                       onClick={closeModal}
-                      className="flex-1 py-2.5 rounded-xl font-semibold transition-all"
-                      style={{
-                        border: '1px solid #021767',
-                        color: '#3F5885',
-                        backgroundColor: '#ffffff'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = 'rgba(6, 33, 107, 0.06)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = '#ffffff';
-                      }}
+                      className="flex-1 py-2.5 rounded-xl font-bold text-xs bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 transition-all shadow-sm"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
                       disabled={submitting}
-                      className="flex-1 py-2.5 rounded-xl font-bold text-white transition-all disabled:opacity-50"
-                      style={{
-                        background: 'linear-gradient(135deg, #153D9F 0%, #06216B 100%)',
-                        boxShadow: '0 6px 18px rgba(2, 29, 91, 0.2)',
-                        border: '1px solid #021767'
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!submitting) {
-                          e.currentTarget.style.background = 'linear-gradient(135deg, #06216B 0%, #021D5B 100%)';
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!submitting) {
-                          e.currentTarget.style.background = 'linear-gradient(135deg, #153D9F 0%, #06216B 100%)';
-                        }
-                      }}
+                      className="flex-1 py-2.5 rounded-xl font-bold text-xs text-white bg-[#035352] hover:bg-[#023e3d] shadow-md shadow-[#035352]/20 transition-all disabled:opacity-50"
                     >
-                      {submitting ? 'Saving...' : editingOrg ? 'Update' : 'Create'}
+                      {submitting ? 'Saving...' : editingOrg ? 'Update Organisation' : 'Create Organisation'}
                     </button>
                   </div>
                 </form>
@@ -931,6 +664,12 @@ export default function Organisations() {
           </div>
         </div>
       )}
+
+      {/* QR Code Modal for Admin */}
+      <OrgQRModal
+        organisation={qrModalOrg}
+        onClose={() => setQrModalOrg(null)}
+      />
     </div>
   );
 }
