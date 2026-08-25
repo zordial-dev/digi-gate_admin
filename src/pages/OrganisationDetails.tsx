@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   Building2, ChevronLeft, QrCode, Phone, Mail, Globe, MapPin, 
-  Clock, MessageSquare, Users, ClipboardList, ShieldCheck, ShieldAlert, Edit2, User, RefreshCw
+  Clock, MessageSquare, Users, ClipboardList, ShieldCheck, ShieldAlert, User, RefreshCw
 } from 'lucide-react';
 import { organisationApi, adminVisitApi } from '@/api/services';
 import type { Organisation, VisitorVisit } from '@/types';
@@ -483,7 +483,7 @@ export default function OrganisationDetails() {
 
       {/* QR Modal */}
       {showQRModal && (
-        <OrgQRModal org={org} onClose={() => setShowQRModal(false)} />
+        <OrgQRModal organisation={org} onClose={() => setShowQRModal(false)} />
       )}
     </div>
   );

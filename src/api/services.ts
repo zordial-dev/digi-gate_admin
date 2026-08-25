@@ -52,7 +52,7 @@ export const adminVisitorApi = {
 // ADMIN - VISIT API
 // ============================================================
 export const adminVisitApi = {
-  getAll: (params?: { page?: number; limit?: number; startDate?: string; endDate?: string }) =>
+  getAll: (params?: { page?: number; limit?: number; startDate?: string; endDate?: string; organisation_id?: number }) =>
     apiClient.get<PaginatedResponse<VisitorVisit>>('/admin/visits', { params }),
   
   getById: (id: number) =>
