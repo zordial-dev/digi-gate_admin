@@ -113,10 +113,10 @@ export default function Organisations() {
     setShowModal(true);
     setLoading(true);
     setMessage(null);
-    
+
     try {
       const orgDetails = await fetchOrganisationDetails(org.id);
-      
+
       if (orgDetails) {
         setEditingOrg(orgDetails);
         setFormData({
@@ -246,12 +246,11 @@ export default function Organisations() {
       </div>
 
       {message && (
-        <div 
-          className={`p-3.5 rounded-2xl border text-xs font-bold shadow-sm ${
-            message.type === 'success' 
-              ? 'bg-emerald-50 text-emerald-800 border-emerald-200' 
+        <div
+          className={`p-3.5 rounded-2xl border text-xs font-bold shadow-sm ${message.type === 'success'
+              ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
               : 'bg-rose-50 text-rose-800 border-rose-200'
-          }`}
+            }`}
         >
           {message.text}
         </div>
@@ -313,7 +312,7 @@ export default function Organisations() {
                           border: org.is_active ? '1px solid #bbf7d0' : '1px solid #fde68a'
                         }}
                       >
-                        {org.is_active ? 'Approved' : 'Pending Approval'}
+                        {org.is_active ? 'Acitive' : 'Deactive'}
                       </button>
                     </td>
                     <td className="px-4 py-3 text-center">
@@ -380,7 +379,7 @@ export default function Organisations() {
         </div>
 
         {totalPages > 1 && (
-          <div 
+          <div
             className="flex items-center justify-between px-4 py-3"
             style={{ borderTop: '1px solid #021767', backgroundColor: '#f8fafc' }}
           >
@@ -449,8 +448,8 @@ export default function Organisations() {
                   {editingOrg ? 'Edit Organisation Details' : 'Add New Organisation'}
                 </h2>
               </div>
-              <button 
-                onClick={closeModal} 
+              <button
+                onClick={closeModal}
                 className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all"
               >
                 <X className="h-5 w-5" />
@@ -467,9 +466,8 @@ export default function Organisations() {
             ) : (
               <>
                 {message && (
-                  <div className={`mb-4 p-3.5 rounded-2xl border text-xs font-bold shadow-sm ${
-                    message.type === 'success' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-rose-50 text-rose-800 border-rose-200'
-                  }`}>
+                  <div className={`mb-4 p-3.5 rounded-2xl border text-xs font-bold shadow-sm ${message.type === 'success' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-rose-50 text-rose-800 border-rose-200'
+                    }`}>
                     {message.text}
                   </div>
                 )}
