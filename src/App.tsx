@@ -11,6 +11,7 @@ import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import Dashboard from '@/pages/Dashboard';
 import Organisations from '@/pages/Organisations';
+import RegistrationRequests from '@/pages/RegistrationRequests';
 import OrganisationDetails from '@/pages/OrganisationDetails';
 import Visitors from '@/pages/Visitors';
 import Visits from '@/pages/Visits';
@@ -38,6 +39,7 @@ function App() {
                       <main className="p-6">
                         <Routes>
                           <Route path="/" element={<Dashboard />} />
+                          <Route path="/requests" element={<RegistrationRequests />} />
                           <Route path="/org" element={<Organisations />} />
                           <Route path="/org/:id" element={<OrganisationDetails />} />
                           <Route path="/organisations/:id" element={<OrganisationDetails />} />

@@ -2,6 +2,7 @@ import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   Building2, 
+  FileCheck,
   Users,
   ClipboardList,
   LogOut,
@@ -11,6 +12,7 @@ import { useAuth } from '../../context/AuthContext';
 
 const navItems = [
   { path: '/', label: 'Dashboard', icon: LayoutDashboard },
+  { path: '/requests', label: 'Registration Requests', icon: FileCheck },
   { path: '/org', label: 'Organisations', icon: Building2 },
   { path: '/visitors', label: 'Visitors', icon: Users },
   { path: '/visits', label: 'Visits', icon: ClipboardList },

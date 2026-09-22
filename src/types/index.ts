@@ -1,22 +1,24 @@
 export interface Organisation {
   id: number;
   name: string;
-  code: string;
-  logo_url: string;
-  address: string;
-  city: string;
-  state: string;
-  country: string;
-  pincode: string;
-  phone: string;
-  email: string;
-  website: string;
-  timezone: string;  // Add this
+  code?: string | null;
+  logo_url?: string | null;
+  address?: string | null;
+  city?: string | null;
+  state?: string | null;
+  country?: string | null;
+  pincode?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  website?: string | null;
+  timezone?: string;
   is_active: boolean;
-  created_at: string;
+  is_approved?: number;
+  block_reason?: string | null;
+  created_at?: string;
   updated_at?: string;
-  host_available_message: string;
-  host_unavailable_message: string;
+  host_available_message?: string;
+  host_unavailable_message?: string;
 }
 
 export interface Host {
@@ -38,6 +40,7 @@ export interface DashboardStats {
   total_visitors: number;
   total_visits: number;
   active_organisations: number;
+  pending_requests?: number;
 }
 
 export interface PaginatedResponse<T> {

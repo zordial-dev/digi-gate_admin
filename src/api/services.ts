@@ -29,6 +29,20 @@ export const organisationApi = {
     apiClient.patch<ApiResponse<Organisation>>(`/admin/organisations/${id}/toggle-status`),
 };
 
+export const registrationRequestApi = {
+  getAll: (params?: { page?: number; limit?: number; search?: string; status?: string }) =>
+    apiClient.get<PaginatedResponse<Organisation>>('/admin/requests', { params }),
+
+  approve: (id: number) =>
+    apiClient.put<ApiResponse<Organisation>>(`/admin/requests/${id}/approve`),
+
+  hold: (id: number, message: string) =>
+    apiClient.put<ApiResponse<Organisation>>(`/admin/requests/${id}/hold`, { message }),
+
+  deny: (id: number, message: string) =>
+    apiClient.put<ApiResponse<Organisation>>(`/admin/requests/${id}/deny`, { message }),
+};
+
 export const adminDashboardApi = {
   getStats: () =>
     apiClient.get<ApiResponse<DashboardStats>>('/admin/dashboard/stats'),

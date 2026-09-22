@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Eye, X, Search, ChevronLeft, ChevronRight, Building2, Upload, QrCode } from 'lucide-react';
+import { Plus, Edit2, Trash2, Eye, X, Search, ChevronLeft, ChevronRight, Building2, Upload, QrCode, FileCheck } from 'lucide-react';
 import { organisationApi } from '@/api/services';
 import type { Organisation } from '@/types';
 import { useNavigate } from 'react-router-dom';
@@ -34,7 +34,7 @@ export default function Organisations() {
     phone: '',
     email: '',
     website: '',
-    timezone: '',
+    timezone: 'Asia/Kolkata',
     host_available_message: '',
     host_unavailable_message: '',
   });
@@ -99,7 +99,7 @@ export default function Organisations() {
       phone: '',
       email: '',
       website: '',
-      timezone: '',
+      timezone: 'Asia/Kolkata',
       host_available_message: '',
       host_unavailable_message: '',
     });
@@ -110,39 +110,27 @@ export default function Organisations() {
   };
 
   const openEditModal = async (org: Organisation) => {
+    const fullOrg = await fetchOrganisationDetails(org.id);
+    const targetOrg = fullOrg || org;
+    setEditingOrg(targetOrg);
+    setFormData({
+      name: targetOrg.name || '',
+      code: targetOrg.code || '',
+      address: targetOrg.address || '',
+      city: targetOrg.city || '',
+      state: targetOrg.state || '',
+      country: targetOrg.country || '',
+      pincode: targetOrg.pincode || '',
+      phone: targetOrg.phone || '',
+      email: targetOrg.email || '',
+      website: targetOrg.website || '',
+      timezone: targetOrg.timezone || 'Asia/Kolkata',
+      host_available_message: targetOrg.host_available_message || '',
+      host_unavailable_message: targetOrg.host_unavailable_message || '',
+    });
+    setLogoFile(null);
+    setLogoPreview(targetOrg.logo_url || null);
     setShowModal(true);
-    setLoading(true);
-    setMessage(null);
-
-    try {
-      const orgDetails = await fetchOrganisationDetails(org.id);
-
-      if (orgDetails) {
-        setEditingOrg(orgDetails);
-        setFormData({
-          name: orgDetails.name || '',
-          code: orgDetails.code || '',
-          address: orgDetails.address || '',
-          city: orgDetails.city || '',
-          state: orgDetails.state || '',
-          country: orgDetails.country || '',
-          pincode: orgDetails.pincode || '',
-          phone: orgDetails.phone || '',
-          email: orgDetails.email || '',
-          website: orgDetails.website || '',
-          timezone: orgDetails.timezone || '',
-          host_available_message: orgDetails.host_available_message || '',
-          host_unavailable_message: orgDetails.host_unavailable_message || '',
-        });
-        setLogoPreview(orgDetails.logo_url || null);
-        setLogoFile(null);
-      }
-    } catch (error) {
-      console.error('Error loading organisation details:', error);
-      setMessage({ type: 'error', text: 'Failed to load organisation details' });
-    } finally {
-      setLoading(false);
-    }
   };
 
   const closeModal = () => {
@@ -158,40 +146,60 @@ export default function Organisations() {
     setMessage(null);
 
     try {
-      const formDataToSend = new FormData();
-      Object.keys(formData).forEach(key => {
-        formDataToSend.append(key, formData[key as keyof typeof formData]);
-      });
+      const data = new FormData();
+      data.append('name', formData.name);
+      data.append('code', formData.code);
+      data.append('address', formData.address);
+      data.append('city', formData.city);
+      data.append('state', formData.state);
+      data.append('country', formData.country);
+      data.append('pincode', formData.pincode);
+      data.append('phone', formData.phone);
+      data.append('email', formData.email);
+      data.append('website', formData.website);
+      data.append('timezone', formData.timezone);
+      data.append('host_available_message', formData.host_available_message);
+      data.append('host_unavailable_message', formData.host_unavailable_message);
+
       if (logoFile) {
-        formDataToSend.append('logo', logoFile);
+        data.append('logo', logoFile);
       }
 
       let res;
       if (editingOrg) {
-        res = await organisationApi.update(editingOrg.id, formDataToSend);
+        res = await organisationApi.update(editingOrg.id, data);
       } else {
-        res = await organisationApi.create(formDataToSend);
+        res = await organisationApi.create(data);
       }
 
       if (res.data.success) {
-        setMessage({ type: 'success', text: `Organisation ${editingOrg ? 'updated' : 'created'} successfully!` });
+        setShowModal(false);
         await fetchOrganisations();
-        setTimeout(closeModal, 1000);
+        setMessage({
+          type: 'success',
+          text: `Organisation ${editingOrg ? 'updated' : 'created'} successfully!`,
+        });
+        setTimeout(() => setMessage(null), 3000);
       }
-    } catch (error) {
-      setMessage({ type: 'error', text: 'Failed to save organisation' });
+    } catch (error: any) {
+      console.error('Error submitting form:', error);
+      setMessage({
+        type: 'error',
+        text: error.response?.data?.error || 'Failed to save organisation',
+      });
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this organisation?')) return;
+    if (!window.confirm('Are you sure you want to delete this organisation?')) return;
+
     try {
       const res = await organisationApi.delete(id);
       if (res.data.success) {
-        setMessage({ type: 'success', text: 'Organisation deleted successfully!' });
         await fetchOrganisations();
+        setMessage({ type: 'success', text: 'Organisation deleted successfully!' });
         setTimeout(() => setMessage(null), 3000);
       }
     } catch (error) {
@@ -233,16 +241,25 @@ export default function Organisations() {
     <div className="space-y-6 animate-in fade-in duration-300">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-2xl font-black tracking-tight text-[#172525]">Tenant Organisations</h1>
-          <p className="text-xs text-slate-500 font-medium mt-1">Manage registered organisations, gate access status, and QR passes</p>
+          <h1 className="text-2xl font-black tracking-tight text-[#172525]">Approved Organisations</h1>
+          <p className="text-xs text-slate-500 font-medium mt-1">Manage active tenant organisations, gate access status, and QR passes</p>
         </div>
-        <button
-          onClick={openCreateModal}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs text-white bg-[#035352] hover:bg-[#023e3d] shadow-md shadow-[#035352]/20 transition-all"
-        >
-          <Plus className="h-4 w-4" />
-          Add Organisation
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => navigate('/requests')}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs text-[#035352] bg-[#035352]/10 hover:bg-[#035352]/20 transition-all border border-[#035352]/20"
+          >
+            <FileCheck className="h-4 w-4" />
+            Registration Requests
+          </button>
+          <button
+            onClick={openCreateModal}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs text-white bg-[#035352] hover:bg-[#023e3d] shadow-md shadow-[#035352]/20 transition-all"
+          >
+            <Plus className="h-4 w-4" />
+            Add Organisation
+          </button>
+        </div>
       </div>
 
       {message && (
