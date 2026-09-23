@@ -96,3 +96,11 @@ export interface VisitorVisit {
   host?: Host;
   organisation?: Organisation;
 }
+
+export interface AdminUserItem {
+  id: number;
+  email: string;
+  role_id: number;
+  role_name: string;
+  is_active: boolean;
+}

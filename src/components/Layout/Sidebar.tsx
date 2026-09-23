@@ -6,11 +6,12 @@ import {
   Users,
   ClipboardList,
   LogOut,
-  ShieldCheck
+  ShieldCheck,
+  UserCog
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
-const navItems = [
+const baseNavItems = [
   { path: '/', label: 'Dashboard', icon: LayoutDashboard },
   { path: '/requests', label: 'Registration Requests', icon: FileCheck },
   { path: '/org', label: 'Organisations', icon: Building2 },
@@ -22,6 +23,11 @@ export default function Sidebar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const isSuperAdmin = user?.role_id === 1 || user?.role === 'super_admin';
+  const navItems = isSuperAdmin
+    ? [...baseNavItems, { path: '/admins', label: 'Manage Admins', icon: UserCog }]
+    : baseNavItems;
 
   const handleLogout = async () => {
     try {

@@ -8,6 +8,8 @@ export interface User {
   email: string;
   phone?: string;
   role: string;
+  role_id?: number;
+  is_active?: boolean;
   organisation_id?: number | null;
   organisationName?: string;
   avatar?: string;
@@ -67,6 +69,8 @@ export const authService = {
       email: user.email,
       username: user.username,
       role: user.role || 'Admin',
+      role_id: user.role_id || (user.role === 'super_admin' ? 1 : 2),
+      is_active: user.is_active,
       organisation_id: user.organisation_id,
       avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256'
     };
@@ -164,5 +168,36 @@ export const authService = {
     localStorage.removeItem(USER_KEY);
     sessionStorage.removeItem(TOKEN_KEY);
     sessionStorage.removeItem(USER_KEY);
+  },
+
+  getAdminUsers: async (): Promise<any[]> => {
+    const response = await apiClient.get('/admin/users');
+    if (!response.data.success) {
+      throw new Error(response.data.error || 'Failed to fetch admin users.');
+    }
+    return response.data.data;
+  },
+
+  createAdminUser: async (data: { email: string; password?: string; role_id: number }): Promise<any> => {
+    const response = await apiClient.post('/admin/users', data);
+    if (!response.data.success) {
+      throw new Error(response.data.error || 'Failed to create admin user.');
+    }
+    return response.data.data;
+  },
+
+  updateAdminUser: async (id: number, data: { is_active?: boolean; role_id?: number; password?: string }): Promise<any> => {
+    const response = await apiClient.put(`/admin/users/${id}`, data);
+    if (!response.data.success) {
+      throw new Error(response.data.error || 'Failed to update admin user.');
+    }
+    return response.data.data;
+  },
+
+  deleteAdminUser: async (id: number): Promise<void> => {
+    const response = await apiClient.delete(`/admin/users/${id}`);
+    if (!response.data.success) {
+      throw new Error(response.data.error || 'Failed to delete admin user.');
+    }
   },
 };
