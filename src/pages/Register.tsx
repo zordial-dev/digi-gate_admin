@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, User as UserIcon, Phone, ShieldCheck, UserPlus, CheckSquare, Square, KeyRound } from 'lucide-react';
+import { Mail, Lock, User as UserIcon, Phone, UserPlus, CheckSquare, Square, KeyRound } from 'lucide-react';
 import AuthLayout from '../layouts/AuthLayout';
 import Input from '../components/UI/Input';
 import Button from '../components/UI/Button';
@@ -18,7 +18,6 @@ export const Register: React.FC = () => {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [role, setRole] = useState('Super Admin');
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -77,7 +76,7 @@ export const Register: React.FC = () => {
 
     setIsLoading(true);
     try {
-      const res = await register({ fullName, email, phone, password, role });
+      const res = await register({ fullName, email, phone, password, role: 'admin' });
       setRegisteredEmail(res.email || email);
       showToast('OTP Dispatched', `A static 4-digit OTP code (1234) has been sent to ${res.email || email}.`, 'info');
       setShowOtpModal(true);
@@ -99,9 +98,9 @@ export const Register: React.FC = () => {
     setOtpLoading(true);
     try {
       await verifyOtp(registeredEmail, otpCode);
-      showToast('Verification Successful', 'Account verified! Welcome to Digi-Gate Admin Panel.', 'success');
+      showToast('Registration Pending Approval', 'Your admin registration is submitted and pending approval by the Super Administrator. You can log in once approved.', 'info');
       setShowOtpModal(false);
-      navigate('/');
+      navigate('/login');
     } catch (err: any) {
       const msg = err.response?.data?.error || err.message || 'OTP verification failed.';
       showToast('Verification Error', msg, 'error');
@@ -113,8 +112,8 @@ export const Register: React.FC = () => {
   return (
     <>
       <AuthLayout
-        title="Create Admin Account"
-        subtitle="Register a new administrative user to manage system gates and access controls."
+        title="Admin Registration"
+        subtitle="Register for a new administrator account. Accounts require Super Administrator approval before login."
       >
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <Input
@@ -146,23 +145,6 @@ export const Register: React.FC = () => {
               leftIcon={<Phone className="w-4 h-4 text-slate-400" />}
               error={errors.phone}
             />
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-[#172525] tracking-wide uppercase">Admin Role</label>
-            <div className="relative">
-              <ShieldCheck className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5 pointer-events-none" />
-              <select
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-                className="w-full rounded-xl border border-slate-300 bg-white pl-11 pr-4 py-3 text-sm text-[#172525] focus:outline-none focus:border-[#035352] focus:ring-2 focus:ring-[#035352]/20"
-              >
-                <option value="Super Admin">Super Admin (Full Rights)</option>
-                <option value="System Admin">System Admin</option>
-                <option value="Security Manager">Security Manager</option>
-                <option value="Auditor">Auditor (Read Only)</option>
-              </select>
-            </div>
           </div>
 
           <Input

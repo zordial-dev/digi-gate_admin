@@ -103,4 +103,6 @@ export interface AdminUserItem {
   role_id: number;
   role_name: string;
   is_active: boolean;
+  is_approved: number; // 0 = Pending, 1 = Approved, 2 = Denied
+  is_blocked: boolean;
 }

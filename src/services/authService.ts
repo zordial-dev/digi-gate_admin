@@ -186,7 +186,7 @@ export const authService = {
     return response.data.data;
   },
 
-  updateAdminUser: async (id: number, data: { is_active?: boolean; role_id?: number; password?: string }): Promise<any> => {
+  updateAdminUser: async (id: number, data: { is_approved?: number; is_blocked?: boolean; is_active?: boolean; role_id?: number; password?: string }): Promise<any> => {
     const response = await apiClient.put(`/admin/users/${id}`, data);
     if (!response.data.success) {
       throw new Error(response.data.error || 'Failed to update admin user.');
