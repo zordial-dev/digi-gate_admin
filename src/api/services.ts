@@ -1,5 +1,5 @@
 import apiClient from './client';
-import type { Organisation, DashboardStats, ApiResponse, PaginatedResponse, Visitor, VisitorVisit } from '@/types';
+import type { Organisation, DashboardStats, ApiResponse, PaginatedResponse, AdminUserItem } from '@/types';
 
 export const organisationApi = {
   getAll: (params?: { page?: number; limit?: number; search?: string }) =>
@@ -50,25 +50,4 @@ export const adminDashboardApi = {
   getRecentOrganisations: (limit: number = 5) =>
     apiClient.get<ApiResponse<Organisation[]>>(`/admin/dashboard/recent?limit=${limit}`),
 };
-
-// ============================================================
-// ADMIN - VISITOR API
-// ============================================================
-export const adminVisitorApi = {
-  getAll: (params?: { page?: number; limit?: number; search?: string }) =>
-    apiClient.get<PaginatedResponse<Visitor>>('/admin/visitors', { params }),
-  
-  getById: (id: number) =>
-    apiClient.get<ApiResponse<Visitor>>(`/admin/visitors/${id}`),
-};
-
-// ============================================================
-// ADMIN - VISIT API
-// ============================================================
-export const adminVisitApi = {
-  getAll: (params?: { page?: number; limit?: number; startDate?: string; endDate?: string; organisation_id?: number }) =>
-    apiClient.get<PaginatedResponse<VisitorVisit>>('/admin/visits', { params }),
-  
-  getById: (id: number) =>
-    apiClient.get<ApiResponse<VisitorVisit>>(`/admin/visits/${id}`),
-};
+

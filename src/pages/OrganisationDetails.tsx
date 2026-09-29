@@ -2,10 +2,9 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   Building2, ChevronLeft, QrCode, Phone, Mail, Globe, MapPin, 
-  Clock, MessageSquare, Users, ClipboardList, ShieldCheck, ShieldAlert, User, RefreshCw
+  Clock, MessageSquare, Users, ShieldCheck, ShieldAlert, User, RefreshCw
 } from 'lucide-react';
-import { organisationApi, adminVisitApi } from '@/api/services';
-import type { Organisation, VisitorVisit } from '@/types';
+import { organisationApi } from '@/api/services';
 import OrgQRModal from '../components/UI/OrgQRModal';
 import apiClient from '../api/client';
 
@@ -15,9 +14,8 @@ export default function OrganisationDetails() {
 
   const [org, setOrg] = useState<Organisation | null>(null);
   const [hosts, setHosts] = useState<any[]>([]);
-  const [visits, setVisits] = useState<VisitorVisit[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'hosts' | 'visits'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'hosts'>('overview');
   const [showQRModal, setShowQRModal] = useState(false);
   const [statusToggling, setStatusToggling] = useState(false);
 
@@ -46,15 +44,6 @@ export default function OrganisationDetails() {
         console.error('Failed to fetch org hosts:', err);
       }
 
-      // 3. Fetch Visits for this Organisation
-      try {
-        const visitsRes = await adminVisitApi.getAll({ organisation_id: orgId, limit: 15 });
-        if (visitsRes.data.success) {
-          setVisits(visitsRes.data.data);
-        }
-      } catch (err) {
-        console.error('Failed to fetch org visits:', err);
-      }
     } catch (error) {
       console.error('Failed to load organisation details:', error);
     } finally {
@@ -159,7 +148,7 @@ export default function OrganisationDetails() {
       </div>
 
       {/* Metrics Banner */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
         <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm flex items-center gap-3.5">
           <div className="w-11 h-11 rounded-xl bg-[#035352]/10 text-[#035352] flex items-center justify-center font-bold shrink-0">
             <Users className="w-5.5 h-5.5" />
@@ -167,16 +156,6 @@ export default function OrganisationDetails() {
           <div>
             <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Staff Hosts</p>
             <p className="text-xl font-black text-[#172525]">{hosts.length}</p>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-xl bg-[#035352]/10 text-[#035352] flex items-center justify-center font-bold shrink-0">
-            <ClipboardList className="w-5.5 h-5.5" />
-          </div>
-          <div>
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Visits</p>
-            <p className="text-xl font-black text-[#172525]">{visits.length}</p>
           </div>
         </div>
 
@@ -227,20 +206,6 @@ export default function OrganisationDetails() {
         >
           <span>Staff Hosts ({hosts.length})</span>
           {activeTab === 'hosts' && (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#035352] rounded-t-full" />
-          )}
-        </button>
-
-        <button
-          onClick={() => setActiveTab('visits')}
-          className={`pb-3 px-4 font-bold text-xs transition-all relative flex items-center gap-1.5 ${
-            activeTab === 'visits'
-              ? 'text-[#035352]'
-              : 'text-slate-500 hover:text-slate-800'
-          }`}
-        >
-          <span>Visit History ({visits.length})</span>
-          {activeTab === 'visits' && (
             <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#035352] rounded-t-full" />
           )}
         </button>
@@ -438,48 +403,6 @@ export default function OrganisationDetails() {
         </div>
       )}
 
-      {/* TAB CONTENT: VISITS */}
-      {activeTab === 'visits' && (
-        <div className="bg-white rounded-3xl border border-slate-200/80 shadow-md shadow-slate-200/50 overflow-hidden">
-          {visits.length === 0 ? (
-            <div className="p-12 text-center text-slate-400 font-medium text-xs">
-              No recent visit logs found for this organisation.
-            </div>
-          ) : (
-            <div className="divide-y divide-slate-100">
-              {visits.map((visit) => (
-                <div key={visit.id} className="p-4 sm:p-5 space-y-2 hover:bg-slate-50/70 transition-colors">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <h4 className="font-extrabold text-sm text-[#172525]">
-                        {visit.visitor?.full_name || 'Visitor'}
-                      </h4>
-                      <p className="text-xs text-[#035352] font-bold">
-                        Host: {visit.host?.full_name || 'Staff'}
-                      </p>
-                    </div>
-                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border shrink-0 ${
-                      visit.host_available_at_submission
-                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                        : 'bg-rose-50 text-rose-700 border-rose-200'
-                    }`}>
-                      {visit.host_available_at_submission ? 'Completed' : 'Host Unavailable'}
-                    </span>
-                  </div>
-
-                  <p className="text-xs text-slate-600 bg-slate-50 p-2.5 rounded-xl border border-slate-200/60 font-medium">
-                    "{visit.purpose_of_visit}"
-                  </p>
-
-                  <p className="text-[11px] text-slate-400 font-mono">
-                    Check-in: {new Date(visit.check_in_time).toLocaleString()}
-                  </p>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
 
       {/* QR Modal */}
       {showQRModal && (

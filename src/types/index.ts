@@ -37,8 +37,6 @@ export interface Host {
 
 export interface DashboardStats {
   total_organisations: number;
-  total_visitors: number;
-  total_visits: number;
   active_organisations: number;
   pending_requests?: number;
 }
@@ -63,39 +61,6 @@ export interface ApiResponse<T = any> {
   message?: string;
 }
 
-export interface Visitor {
-  id: number;
-  organisation_id: number;
-  full_name: string;
-  designation: string;
-  company: string;
-  location?: string;
-  email?: string;
-  linkedin?: string;
-  mobile_number: string;
-  created_at: string;
-  updated_at: string;
-  organisation?: Organisation;
-}
-
-export interface VisitorVisit {
-  id: number;
-  visitor_id: number;
-  organisation_id: number;
-  host_id: number;
-  purpose_of_visit: string;
-  reference?: string;
-  selfie_url?: string;
-  otp_verified: boolean;
-  visit_date: string;
-  check_in_time: string;
-  host_available_at_submission: boolean;
-  confirmation_message?: string;
-  created_at: string;
-  visitor?: Visitor;
-  host?: Host;
-  organisation?: Organisation;
-}
 
 export interface AdminUserItem {
   id: number;

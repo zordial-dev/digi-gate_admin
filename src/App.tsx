@@ -13,8 +13,6 @@ import Dashboard from '@/pages/Dashboard';
 import Organisations from '@/pages/Organisations';
 import RegistrationRequests from '@/pages/RegistrationRequests';
 import OrganisationDetails from '@/pages/OrganisationDetails';
-import Visitors from '@/pages/Visitors';
-import Visits from '@/pages/Visits';
 import ManageAdmins from '@/pages/ManageAdmins';
 
 function App() {
@@ -44,8 +42,6 @@ function App() {
                           <Route path="/org" element={<Organisations />} />
                           <Route path="/org/:id" element={<OrganisationDetails />} />
                           <Route path="/organisations/:id" element={<OrganisationDetails />} />
-                          <Route path="/visitors" element={<Visitors />} />
-                          <Route path="/visits" element={<Visits />} />
                           <Route path="/admins" element={<ManageAdmins />} />
                           <Route path="*" element={<Navigate to="/" replace />} />
                         </Routes>

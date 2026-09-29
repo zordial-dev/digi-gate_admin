@@ -3,8 +3,6 @@ import {
   LayoutDashboard, 
   Building2, 
   FileCheck,
-  Users,
-  ClipboardList,
   LogOut,
   ShieldCheck,
   UserCog
@@ -15,8 +13,6 @@ const baseNavItems = [
   { path: '/', label: 'Dashboard', icon: LayoutDashboard },
   { path: '/requests', label: 'Registration Requests', icon: FileCheck },
   { path: '/org', label: 'Organisations', icon: Building2 },
-  { path: '/visitors', label: 'Visitors', icon: Users },
-  { path: '/visits', label: 'Visits', icon: ClipboardList },
 ];
 
 export default function Sidebar() {

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Building2, Users, ClipboardList, Activity, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Building2, Activity, ArrowRight, ShieldCheck } from 'lucide-react';
 import { adminDashboardApi } from '@/api/services';
 import type { DashboardStats, Organisation } from '@/types';
 import { Link } from 'react-router-dom';
@@ -41,8 +41,6 @@ export default function Dashboard() {
   const statItems = [
     { title: 'Total Organisations', value: stats?.total_organisations || 0, icon: Building2, color: 'bg-[#035352]' },
     { title: 'Active Organisations', value: stats?.active_organisations || 0, icon: Activity, color: 'bg-emerald-600' },
-    { title: 'Registered Visitors', value: stats?.total_visitors || 0, icon: Users, color: 'bg-teal-600' },
-    { title: 'Total Visit Logs', value: stats?.total_visits || 0, icon: ClipboardList, color: 'bg-cyan-700' },
   ];
 
   return (
