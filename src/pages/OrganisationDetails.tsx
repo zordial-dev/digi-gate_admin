@@ -5,6 +5,7 @@ import {
   Clock, MessageSquare, Users, ShieldCheck, ShieldAlert, User, RefreshCw
 } from 'lucide-react';
 import { organisationApi } from '@/api/services';
+import type { Organisation } from '@/types';
 import OrgQRModal from '../components/UI/OrgQRModal';
 import apiClient from '../api/client';
 

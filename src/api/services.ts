@@ -1,5 +1,5 @@
 import apiClient from './client';
-import type { Organisation, DashboardStats, ApiResponse, PaginatedResponse, AdminUserItem } from '@/types';
+import type { Organisation, DashboardStats, ApiResponse, PaginatedResponse } from '@/types';
 
 export const organisationApi = {
   getAll: (params?: { page?: number; limit?: number; search?: string }) =>
