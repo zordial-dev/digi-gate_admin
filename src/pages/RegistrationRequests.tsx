@@ -3,7 +3,6 @@ import {
   FileCheck,
   Search,
   CheckCircle,
-  PauseCircle,
   XCircle,
   Clock,
   Building2,
@@ -26,18 +25,18 @@ export default function RegistrationRequests() {
   const [requests, setRequests] = useState<Organisation[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'hold' | 'denied'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'denied'>('all');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
 
-  // Modal States for Hold and Deny
-  const [actionModal, setActionModal] = useState<{
-    type: 'hold' | 'deny' | null;
+  // Modal State for Deny
+  const [denyModal, setDenyModal] = useState<{
+    isOpen: boolean;
     org: Organisation | null;
-  }>({ type: null, org: null });
+  }>({ isOpen: false, org: null });
 
-  const [actionMessage, setActionMessage] = useState('');
+  const [denyMessage, setDenyMessage] = useState('');
   const [submittingAction, setSubmittingAction] = useState(false);
 
   const limit = 10;
@@ -85,48 +84,38 @@ export default function RegistrationRequests() {
     }
   };
 
-  const openActionModal = (type: 'hold' | 'deny', org: Organisation) => {
-    setActionModal({ type, org });
-    setActionMessage(org.block_reason || '');
+  const openDenyModal = (org: Organisation) => {
+    setDenyModal({ isOpen: true, org });
+    setDenyMessage(org.block_reason || '');
   };
 
-  const closeActionModal = () => {
-    setActionModal({ type: null, org: null });
-    setActionMessage('');
+  const closeDenyModal = () => {
+    setDenyModal({ isOpen: false, org: null });
+    setDenyMessage('');
     setSubmittingAction(false);
   };
 
-  const handleActionSubmit = async (e: React.FormEvent) => {
+  const handleDenySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!actionModal.org || !actionModal.type) return;
+    if (!denyModal.org) return;
 
-    if (!actionMessage.trim()) {
-      showToast(`Please enter a message for putting this request on ${actionModal.type}`, 'error');
+    if (!denyMessage.trim()) {
+      showToast('Please enter a rejection reason', 'error');
       return;
     }
 
     setSubmittingAction(true);
     try {
-      let res;
-      if (actionModal.type === 'hold') {
-        res = await registrationRequestApi.hold(actionModal.org.id, actionMessage.trim());
-      } else {
-        res = await registrationRequestApi.deny(actionModal.org.id, actionMessage.trim());
-      }
+      const res = await registrationRequestApi.deny(denyModal.org.id, denyMessage.trim());
 
       if (res.data.success) {
-        showToast(
-          actionModal.type === 'hold'
-            ? `${actionModal.org.name} has been put on hold.`
-            : `${actionModal.org.name} registration request has been denied.`,
-          'success'
-        );
-        closeActionModal();
+        showToast(`${denyModal.org.name} registration request has been denied.`, 'success');
+        closeDenyModal();
         fetchRequests();
       }
     } catch (error: any) {
       console.error('Action error:', error);
-      showToast(error.response?.data?.error || 'Failed to update request status', 'error');
+      showToast(error.response?.data?.error || 'Failed to deny request', 'error');
     } finally {
       setSubmittingAction(false);
     }
@@ -138,13 +127,6 @@ export default function RegistrationRequests() {
       return (
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
           <Clock className="w-3.5 h-3.5" /> Pending Approval
-        </span>
-      );
-    }
-    if (isApproved === 2) {
-      return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-purple-50 text-purple-700 border border-purple-200">
-          <PauseCircle className="w-3.5 h-3.5" /> On Hold
         </span>
       );
     }
@@ -176,13 +158,13 @@ export default function RegistrationRequests() {
             </h1>
           </div>
           <p className="mt-1 text-sm text-slate-500 font-medium ml-10">
-            Review, approve, hold, or deny organisation business registrations.
+            Review, approve, or deny organisation business registrations.
           </p>
         </div>
 
         {/* Status Filter Tabs */}
         <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200/60 self-start md:self-auto">
-          {(['all', 'pending', 'hold', 'denied'] as const).map((tab) => (
+          {(['all', 'pending', 'denied'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => {
@@ -324,13 +306,11 @@ export default function RegistrationRequests() {
                   </div>
                 </div>
 
-                {/* Block / Hold / Deny Message Callout */}
+                {/* Deny Reason Callout */}
                 {org.block_reason && (
                   <div
                     className={`rounded-xl p-3.5 text-xs border ${
-                      isApproved === 2
-                        ? 'bg-purple-50 border-purple-200 text-purple-900'
-                        : isApproved === 3
+                      isApproved === 3
                         ? 'bg-rose-50 border-rose-200 text-rose-900'
                         : 'bg-amber-50 border-amber-200 text-amber-900'
                     }`}
@@ -339,7 +319,7 @@ export default function RegistrationRequests() {
                       <MessageSquare className="w-4 h-4 shrink-0 mt-0.5" />
                       <div>
                         <span className="font-bold">
-                          {isApproved === 2 ? 'Hold Message / Reason:' : isApproved === 3 ? 'Deny Reason:' : 'Note:'}
+                          {isApproved === 3 ? 'Deny Reason:' : 'Note:'}
                         </span>{' '}
                         <span>{org.block_reason}</span>
                       </div>
@@ -357,17 +337,9 @@ export default function RegistrationRequests() {
                     <CheckCircle className="w-4 h-4" /> Approve
                   </button>
 
-                  {/* Hold Button */}
-                  <button
-                    onClick={() => openActionModal('hold', org)}
-                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-extrabold bg-purple-600 hover:bg-purple-700 text-white shadow-sm transition-all"
-                  >
-                    <PauseCircle className="w-4 h-4" /> {isApproved === 2 ? 'Update Hold Message' : 'Put On Hold'}
-                  </button>
-
                   {/* Deny Button */}
                   <button
-                    onClick={() => openActionModal('deny', org)}
+                    onClick={() => openDenyModal(org)}
                     className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-extrabold bg-rose-600 hover:bg-rose-700 text-white shadow-sm transition-all"
                   >
                     <XCircle className="w-4 h-4" /> {isApproved === 3 ? 'Update Deny Reason' : 'Deny Request'}
@@ -407,56 +379,48 @@ export default function RegistrationRequests() {
         </div>
       )}
 
-      {/* Action Modal (Hold / Deny Message Dialog) */}
-      {actionModal.type && actionModal.org && (
+      {/* Deny Reason Dialog */}
+      {denyModal.isOpen && denyModal.org && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2">
-                {actionModal.type === 'hold' ? (
-                  <PauseCircle className="w-5 h-5 text-purple-600" />
-                ) : (
-                  <XCircle className="w-5 h-5 text-rose-600" />
-                )}
-                <h3 className="text-base font-bold text-slate-900 capitalize">
-                  {actionModal.type === 'hold' ? 'Put Registration On Hold' : 'Deny Registration Request'}
+                <XCircle className="w-5 h-5 text-rose-600" />
+                <h3 className="text-base font-bold text-slate-900">
+                  Deny Registration Request
                 </h3>
               </div>
-              <button onClick={closeActionModal} className="text-slate-400 hover:text-slate-600">
+              <button onClick={closeDenyModal} className="text-slate-400 hover:text-slate-600">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <p className="text-xs text-slate-600">
-              Organisation: <span className="font-bold text-slate-900">{actionModal.org.name}</span>
+              Organisation: <span className="font-bold text-slate-900">{denyModal.org.name}</span>
             </p>
 
-            <form onSubmit={handleActionSubmit} className="space-y-4">
+            <form onSubmit={handleDenySubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
-                  {actionModal.type === 'hold' ? 'Hold Message / Reason' : 'Deny Reason Message'} <span className="text-rose-500">*</span>
+                  Deny Reason Message <span className="text-rose-500">*</span>
                 </label>
                 <textarea
                   rows={4}
                   required
-                  placeholder={
-                    actionModal.type === 'hold'
-                      ? 'e.g. Additional documentation required. Please provide proof of business registration.'
-                      : 'e.g. Application details could not be verified.'
-                  }
-                  value={actionMessage}
-                  onChange={(e) => setActionMessage(e.target.value)}
+                  placeholder="e.g. Application details could not be verified or requirements not met."
+                  value={denyMessage}
+                  onChange={(e) => setDenyMessage(e.target.value)}
                   className="w-full p-3 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#035352]/20 focus:border-[#035352]"
                 />
                 <p className="mt-1 text-[11px] text-slate-400">
-                  This message will be recorded on the request status.
+                  This message will be recorded on the request and sent to the applicant.
                 </p>
               </div>
 
               <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
                 <button
                   type="button"
-                  onClick={closeActionModal}
+                  onClick={closeDenyModal}
                   disabled={submittingAction}
                   className="px-4 py-2 rounded-xl text-xs font-bold border border-slate-200 text-slate-600 hover:bg-slate-50"
                 >
@@ -465,14 +429,10 @@ export default function RegistrationRequests() {
                 <button
                   type="submit"
                   disabled={submittingAction}
-                  className={`px-5 py-2 rounded-xl text-xs font-bold text-white shadow-sm flex items-center gap-1.5 ${
-                    actionModal.type === 'hold'
-                      ? 'bg-purple-600 hover:bg-purple-700'
-                      : 'bg-rose-600 hover:bg-rose-700'
-                  }`}
+                  className="px-5 py-2 rounded-xl text-xs font-bold text-white shadow-sm flex items-center gap-1.5 bg-rose-600 hover:bg-rose-700"
                 >
                   {submittingAction && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                  <span>{actionModal.type === 'hold' ? 'Confirm Hold' : 'Confirm Deny'}</span>
+                  <span>Confirm Deny</span>
                 </button>
               </div>
             </form>

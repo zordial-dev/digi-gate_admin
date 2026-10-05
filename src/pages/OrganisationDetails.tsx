@@ -319,29 +319,47 @@ export default function OrganisationDetails() {
                 </span>
               </div>
 
-              <div className="bg-white p-4 rounded-2xl flex flex-col items-center justify-center shadow-inner text-slate-800 space-y-2">
-                <img
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(
-                    `http://localhost:5173/?org=${org.code}`
-                  )}`}
-                  alt="Org QR Code"
-                  className="w-40 h-40 object-contain rounded-xl"
-                />
-                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Scan to Check-In</span>
-              </div>
+              {(() => {
+                const userPanelBaseUrl = (import.meta as any).env?.USER_PANEL_BASE_URL || '';
+                const orgIdentifier = org.code?.trim() || org.id;
+                const checkInUrl = userPanelBaseUrl
+                  ? `${userPanelBaseUrl.replace(/\/+$/, '')}/visitor/form/${orgIdentifier}`
+                  : '';
 
-              <div className="space-y-2 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-white/70">Tenant Code:</span>
-                  <span className="font-bold font-mono text-white">{org.code}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-white/70">Check-In URL:</span>
-                  <span className="font-bold font-mono text-emerald-300 truncate max-w-[180px]">
-                    http://localhost:5173/?org={org.code}
-                  </span>
-                </div>
-              </div>
+                return (
+                  <>
+                    <div className="bg-white p-4 rounded-2xl flex flex-col items-center justify-center shadow-inner text-slate-800 space-y-2">
+                      <img
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(
+                          checkInUrl || ' '
+                        )}`}
+                        alt="Org QR Code"
+                        className="w-40 h-40 object-contain rounded-xl"
+                      />
+                      <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Scan to Check-In</span>
+                    </div>
+
+                    <div className="space-y-2 text-xs">
+                      <div className="flex justify-between">
+                        <span className="text-white/70">Tenant Code:</span>
+                        <span className="font-bold font-mono text-white">{org.code}</span>
+                      </div>
+                      <div className="flex justify-between items-center gap-2">
+                        <span className="text-white/70 shrink-0">Check-In URL:</span>
+                        <a
+                          href={checkInUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="font-bold font-mono text-emerald-300 hover:underline truncate max-w-[200px]"
+                          title={checkInUrl}
+                        >
+                          {checkInUrl}
+                        </a>
+                      </div>
+                    </div>
+                  </>
+                );
+              })()}
 
               <button
                 onClick={() => setShowQRModal(true)}

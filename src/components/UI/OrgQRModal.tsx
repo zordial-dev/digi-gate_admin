@@ -14,8 +14,10 @@ export default function OrgQRModal({ organisation, onClose }: OrgQRModalProps) {
 
   if (!organisation) return null;
 
-  const visitorHost = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:5174` : 'http://localhost:5174';
-  const registrationUrl = `${visitorHost}/visitor/form/${organisation.id}`;
+  // Read User Panel base URL directly from environment variable USER_PANEL_BASE_URL
+  const userPanelBaseUrl = (import.meta as any).env?.USER_PANEL_BASE_URL || '';
+  const orgIdentifier = organisation.code?.trim() || organisation.id;
+  const registrationUrl = userPanelBaseUrl ? `${userPanelBaseUrl.replace(/\/+$/, '')}/visitor/form/${orgIdentifier}` : '';
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(registrationUrl);
@@ -97,14 +99,14 @@ export default function OrgQRModal({ organisation, onClose }: OrgQRModalProps) {
         <div className="flex flex-col items-center justify-center p-6 bg-slate-50 rounded-2xl border border-slate-200">
           <div ref={qrCanvasRef} className="p-4 bg-white rounded-2xl border border-slate-200 shadow-md">
             <QRCodeCanvas
-              value={registrationUrl}
+              value={registrationUrl || ' '}
               size={200}
               level="H"
               includeMargin={true}
             />
           </div>
           <div className="hidden">
-            <QRCodeSVG value={registrationUrl} size={200} level="H" />
+            <QRCodeSVG value={registrationUrl || ' '} size={200} level="H" />
           </div>
           <p className="text-xs font-bold text-[#035352] mt-3 uppercase tracking-wider">
             {organisation.name}

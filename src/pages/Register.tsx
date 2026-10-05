@@ -78,7 +78,7 @@ export const Register: React.FC = () => {
     try {
       const res = await register({ fullName, email, phone, password, role: 'admin' });
       setRegisteredEmail(res.email || email);
-      showToast('OTP Dispatched', `A static 4-digit OTP code (1234) has been sent to ${res.email || email}.`, 'info');
+      showToast('OTP Dispatched', `A verification code has been sent to ${res.email || email}.`, 'info');
       setShowOtpModal(true);
     } catch (err: any) {
       const msg = err.response?.data?.error || err.message || 'Registration failed.';
@@ -90,14 +90,14 @@ export const Register: React.FC = () => {
 
   const handleVerifyOtpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!otpCode || otpCode.trim() !== '1234') {
-      showToast('OTP Required', 'Please enter the static OTP code 1234.', 'error');
+    if (!otpCode || !otpCode.trim()) {
+      showToast('OTP Required', 'Please enter the verification code sent to your email.', 'error');
       return;
     }
 
     setOtpLoading(true);
     try {
-      await verifyOtp(registeredEmail, otpCode);
+      await verifyOtp(registeredEmail, otpCode.trim());
       showToast('Registration Pending Approval', 'Your admin registration is submitted and pending approval by the Super Administrator. You can log in once approved.', 'info');
       setShowOtpModal(false);
       navigate('/login');
@@ -230,16 +230,16 @@ export const Register: React.FC = () => {
       >
         <form onSubmit={handleVerifyOtpSubmit} className="space-y-4 my-2">
           <p className="text-xs text-slate-600">
-            Please enter the 4-digit static OTP code (<strong className="text-[#035352]">1234</strong>) sent to <strong className="text-[#035352]">{registeredEmail}</strong>.
+            Please enter the verification code sent to <strong className="text-[#035352]">{registeredEmail}</strong>.
           </p>
 
           <Input
-            label="Enter 4-Digit OTP"
+            label="Enter Verification Code"
             type="text"
-            placeholder="1234"
-            maxLength={4}
+            placeholder="••••••"
+            maxLength={6}
             value={otpCode}
-            onChange={(e) => setOtpCode(e.target.value)}
+            onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
             leftIcon={<KeyRound className="w-4 h-4 text-slate-400" />}
           />
 
