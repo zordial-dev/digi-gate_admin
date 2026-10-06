@@ -4,7 +4,6 @@ import { organisationApi } from '@/api/services';
 import type { Organisation } from '@/types';
 import { useNavigate } from 'react-router-dom';
 import OrgQRModal from '../components/UI/OrgQRModal';
-import MessageVariableBuilder from '../components/UI/MessageVariableBuilder';
 
 export default function Organisations() {
   const navigate = useNavigate();
@@ -35,8 +34,6 @@ export default function Organisations() {
     email: '',
     website: '',
     timezone: 'Asia/Kolkata',
-    host_available_message: '',
-    host_unavailable_message: '',
   });
 
   useEffect(() => {
@@ -100,8 +97,6 @@ export default function Organisations() {
       email: '',
       website: '',
       timezone: 'Asia/Kolkata',
-      host_available_message: '',
-      host_unavailable_message: '',
     });
     setLogoFile(null);
     setLogoPreview(null);
@@ -125,8 +120,6 @@ export default function Organisations() {
       email: targetOrg.email || '',
       website: targetOrg.website || '',
       timezone: targetOrg.timezone || 'Asia/Kolkata',
-      host_available_message: targetOrg.host_available_message || '',
-      host_unavailable_message: targetOrg.host_unavailable_message || '',
     });
     setLogoFile(null);
     setLogoPreview(targetOrg.logo_url || null);
@@ -158,8 +151,6 @@ export default function Organisations() {
       data.append('email', formData.email);
       data.append('website', formData.website);
       data.append('timezone', formData.timezone);
-      data.append('host_available_message', formData.host_available_message);
-      data.append('host_unavailable_message', formData.host_unavailable_message);
 
       if (logoFile) {
         data.append('logo', logoFile);
@@ -265,8 +256,8 @@ export default function Organisations() {
       {message && (
         <div
           className={`p-3.5 rounded-2xl border text-xs font-bold shadow-sm ${message.type === 'success'
-              ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-              : 'bg-rose-50 text-rose-800 border-rose-200'
+            ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+            : 'bg-rose-50 text-rose-800 border-rose-200'
             }`}
         >
           {message.text}
@@ -636,26 +627,6 @@ export default function Organisations() {
                     </div>
                   </div>
 
-                  {/* Interactive Custom Message Variable Builder */}
-                  <div className="border-t border-slate-100 pt-6 mt-4 space-y-4">
-                    <MessageVariableBuilder
-                      label="Host Available Confirmation Message"
-                      name="host_available_message"
-                      value={formData.host_available_message}
-                      onChange={handleChange}
-                      onValueChange={(val) => setFormData((prev) => ({ ...prev, host_available_message: val }))}
-                      defaultMessage="Thank you for visiting! :visitor_name, :host_name will be with you shortly."
-                    />
-
-                    <MessageVariableBuilder
-                      label="Host Unavailable Notification Message"
-                      name="host_unavailable_message"
-                      value={formData.host_unavailable_message}
-                      onChange={handleChange}
-                      onValueChange={(val) => setFormData((prev) => ({ ...prev, host_unavailable_message: val }))}
-                      defaultMessage="Thank you for your interest, :visitor_name. :host_name is currently unavailable."
-                    />
-                  </div>
 
                   <div className="flex gap-3 pt-6 border-t border-slate-100">
                     <button
